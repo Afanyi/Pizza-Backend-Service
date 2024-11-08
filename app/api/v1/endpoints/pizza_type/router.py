@@ -9,6 +9,7 @@ import app.api.v1.endpoints.dough.crud as dough_crud
 import app.api.v1.endpoints.pizza_type.crud as pizza_type_crud
 import app.api.v1.endpoints.topping.crud as topping_crud
 from app.api.v1.endpoints.dough.schemas import DoughSchema
+from app.api.v1.endpoints.order.stock_logic.stock_ingredients_crud import reduce_stock_of_ingredients
 from app.api.v1.endpoints.pizza_type.schemas import \
     JoinedPizzaTypeQuantitySchema, \
     PizzaTypeSchema, \
@@ -45,10 +46,12 @@ def create_pizza_type(
         return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
     dough = dough_crud.get_dough_by_id(pizza_type.dough_id, db)
+
     if not dough:
         raise HTTPException(status_code=404, detail='Item not found')
 
     new_pizza_type = pizza_type_crud.create_pizza_type(pizza_type, db)
+
     response.status_code = status.HTTP_201_CREATED
     return new_pizza_type
 

@@ -12,7 +12,7 @@ x-common-variables: &DB_VARIABLES
 
 services:
   web:
-    container_name: <git_repository_name>_1337_pizza_web_dev
+    container_name: Renz-Mi2-Red_1337_pizza_web_dev
     build:
       context: ./
       dockerfile: ./infra/build_artifacts/development.dockerfile
@@ -28,7 +28,7 @@ services:
     entrypoint: [ "" ]
 
   db-dev:
-    container_name: <git_repository_name>_1337_pizza_db_dev
+    container_name: Renz-Mi2-Red_1337_pizza_db_dev
     image: postgres:15-alpine
     ports:
       - '5432:5432'
