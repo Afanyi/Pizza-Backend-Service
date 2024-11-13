@@ -45,10 +45,12 @@ def create_pizza_type(
         return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
     dough = dough_crud.get_dough_by_id(pizza_type.dough_id, db)
+
     if not dough:
         raise HTTPException(status_code=404, detail='Item not found')
 
     new_pizza_type = pizza_type_crud.create_pizza_type(pizza_type, db)
+
     response.status_code = status.HTTP_201_CREATED
     return new_pizza_type
 

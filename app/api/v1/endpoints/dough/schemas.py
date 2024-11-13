@@ -25,6 +25,7 @@ class DoughListItemSchema(BaseModel):
     name: str
     price: float
     description: str
+    stock: int
 
     class Config:
         orm_mode = True
