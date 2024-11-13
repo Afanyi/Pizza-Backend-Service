@@ -9,7 +9,6 @@ import app.api.v1.endpoints.dough.crud as dough_crud
 import app.api.v1.endpoints.pizza_type.crud as pizza_type_crud
 import app.api.v1.endpoints.topping.crud as topping_crud
 from app.api.v1.endpoints.dough.schemas import DoughSchema
-from app.api.v1.endpoints.order.stock_logic.stock_ingredients_crud import reduce_stock_of_ingredients
 from app.api.v1.endpoints.pizza_type.schemas import \
     JoinedPizzaTypeQuantitySchema, \
     PizzaTypeSchema, \
