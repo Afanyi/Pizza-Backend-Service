@@ -20,7 +20,6 @@ def get_db():
 
 router = APIRouter()
 
-
 @router.get('', response_model=List[BeverageListItemSchema], tags=['beverage'])
 def get_all_beverages(db: Session = Depends(get_db)):
     beverages = beverage_crud.get_all_beverages(db)
