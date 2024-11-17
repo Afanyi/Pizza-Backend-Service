@@ -15,49 +15,69 @@ The following is a collection of short hints on how to do the most essential thi
 
 - How to delay a job until another job is done:
 
-Use the "needs" keyword to specify the dependencies. For example:  needs: ["job1"]
-
+Use the "needs" keyword to specify the dependencies.
+```yaml
+job2:
+  stage: test
+  needs: ["job1"]
+  script:
+    - echo "Job 2 starts after Job 1"
+```
 - How to change the image used in a task: 
 
-Specify the "image" keyword in the job definition. For example: image: python:3.10
-    
+Specify the "image" keyword in the job definition.
+```yaml
+job_name:
+  image: python:3.10
+  script:
+    - python --version
+```   
 - How do you start a task manually:
 
-Use the when: manual configuration for the job. (when: manual)
-
+Use the when: manual configuration for the job.
+```yaml
+manual_job:
+  stage: deploy
+  script:
+    - echo "Deploy manually"
+  when: manual
+```
 - The Script part of the config file - what is it good for?
 
 The script section contains the commands that the job will execute. These are the actual steps or instructions for the CI/CD pipeline.
 
 - If I want a task to run for every branch I put it into the stage ??
 
-To configure a GitLab CI/CD job that runs for every branch, you can use the rules keyword. 
+To configure a GitLab CI/CD job that runs for every branch, you can use the "rules" keyword. 
 
-job_name:
+```yaml
+job_name: 
   stage: test
   script:
     - echo "Running on every branch"
   rules:
     - if: '$CI_COMMIT_REF_NAME'  # Runs for every branch
-
+```
 If you don't use rules, GitLab CI jobs run by default for all branches unless otherwise restricted. Restrictions can be made with the keyword "only", for example: 
 
+```yaml
 only:
     - main
-    - dev
-
+    - dev    
+```
 - If I want a task to run for every merge request I put it into the stage ??
 
 To run a job for every merge request, add it to the "rules" keyword.
 
+```yaml
  rules:
     - if: '$CI_MERGE_REQUEST_ID'
-
+```
 - If I want a task to run for every commit to the main branch I put it into the stage ??
-
+```yaml
  rules:
     - if: '$CI_COMMIT_REF_NAME == "main"'
-
+```
 # flake8 / flakeheaven
 
 - What is the purpose of flake8?
