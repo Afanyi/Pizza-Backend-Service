@@ -7,7 +7,7 @@ ARG PYTHON_IMAGE_VERSION=3.10
 #
 ### Target: development
 #
-FROM python:${PYTHON_IMAGE_VERSION}-slim-buster As development
+FROM python:${PYTHON_IMAGE_VERSION}-slim-buster AS development
 
 ENV USER_ID=1000
 ENV GROUP_ID=1000
