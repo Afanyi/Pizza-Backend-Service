@@ -5,7 +5,7 @@
 ARG PYTHON_VERSION=3.10
 
 #FROM base as development
-FROM python:${PYTHON_VERSION}-slim-buster as development
+FROM python:${PYTHON_VERSION}-slim-buster AS development
 
 ENV USER_ID=1000
 ENV GROUP_ID=1000
