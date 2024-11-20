@@ -20,10 +20,11 @@ def get_address_by_id(address_id: uuid.UUID, db: Session):
 
 
 def delete_address_by_id(address_id: uuid.UUID, db: Session):
-    entity = get_address_by_id(address_id)
-    if entity:
-        db.delete(entity)
-        db.commit()
+    if db:
+        entity = get_address_by_id(address_id, db)
+        if entity:
+            db.delete(entity)
+            db.commit()
 
 
 def update_address(address: Address, changed_address: AddressCreateSchema, db: Session):
