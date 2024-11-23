@@ -181,5 +181,68 @@ The servers providing Graylog, SonarQube and your APIs are hidden behind the fir
 From outside the university it can only be accessed when using a VPN.
 https://its.h-da.io/stvpn-docs/de/ 
 
+# SonarQube Bug Resolution Documentation
+
+This document outlines the identified SonarQube issues and their resolutions, adhering to agile documentation practices for quick reference and continuous improvement.
+
+---
+
+## 1. Error When Specifying Only One Parameter
+
+- **Issue**: A method call was causing an error due to a missing parameter when only one argument was provided.
+- **Resolution**: Added the missing parameter `db` to the method signature to ensure all required arguments are supplied.
+
+---
+
+## 2. Error with the 'as' Keyword
+
+- **Issue**: Syntax error caused by the use of lowercase `as` in a SQL statement.
+- **Resolution**: Changed `as` to uppercase `AS` to correct the SQL syntax, ensuring proper keyword recognition.
+
+---
+
+## 3. Repeated String Literal
+
+- **Issue**: Multiple occurrences of the same string literal were found, violating the DRY (Don't Repeat Yourself) principle.
+- **Resolution**: Introduced a constant variable to hold the repeated string value and replaced all instances with this constant to enhance maintainability.
+
+---
+
+## 4. Hardcoded Password in Source Code
+
+- **Issue**: Direct inclusion of username and password in the source code posed a security risk.
+- **Resolution**: Replaced hardcoded credentials with randomly generated values and implemented secure credential management using environment variables or a secrets manager.
+
+---
+
+## 5. Error When Removing Cache After Installing Packages
+
+- **Issue**: An error occurred due to residual cache files after package installation, affecting image size and security.
+- **Resolution**: Added `rm -rf /var/lib/apt/lists/*` and RUN pip install --user --no-cache-dir poetry
+ at the end of the package installation command to remove the cache and reduce the final image size.
+
+---
+
+## 6. Error with Test Coverage
+
+- **Issue**: SonarQube reported an error related to insufficient test coverage.
+- **Resolution**: Issue was acknowledged but deprioritized due to current resource constraints and will be addressed in future sprints.
+
+---
+
+## 7. Unresolved Security Hotspot
+
+- **Issue**: SonarQube identified a security hotspot that couldn't be mitigated with the existing codebase.
+- **Resolution**: Documented the risk for future review. The issue is currently accepted as a known limitation until a feasible solution is found.
+
+---
+##8. Security Issue: automountServiceAccountToken Should Be Set to False
+Issue: SonarQube flagged a security issue where automountServiceAccountToken is not set to false in the Kubernetes deployment YAML. By default, Kubernetes mounts a service account token into pods, which may pose a security risk if the application does not require access to the Kubernetes API.
+Resolution: Updated the Kubernetes YAML specification to set automountServiceAccountToken to false to prevent unnecessary mounting of service account tokens, enhancing pod security.
+
+##9. Resource Limits: Memory Limit Not Specified
+Issue: SonarQube identified that the container lacks specified resource limits, which can lead to uncontrolled resource consumption and affect cluster stability.
+Resolution: Added a memory limit to the container specification in the Kubernetes YAML to enforce resource constraints.
+
 
 
