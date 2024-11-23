@@ -33,9 +33,13 @@ spec:
       labels:
         app: productioncontainer
     spec:
+      automountServiceAccountToken: false
       containers:
         - image: enter_release_containter_registry_url
           name: release-container
+          resources:
+            limits:
+              memory: "512Mi"
           env:
             - name: DATABASE_USERNAME
               valueFrom:
@@ -67,7 +71,7 @@ spec:
                 secretKeyRef:
                   name: database-production
                   key: database-type
-          resources: { }
+          #resources: { }
           ports:
             - containerPort: 8000
       imagePullSecrets:
