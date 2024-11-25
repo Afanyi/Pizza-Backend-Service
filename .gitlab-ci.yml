@@ -101,10 +101,8 @@ integration_testing:
     POSTGRES_DB: postgres
   before_script:
     - 'pip install -r requirements.txt'
-    - 'export PATH="$PATH:/root/.local/bin"'
-    - 'echo "Updated PATH: $PATH"'
-    - 'which alembic'
-    - 'PYTHONPATH=. alembic upgrade head'
+    - 'pip show alembic'
+    - 'PYTHONPATH=. python -m alembic upgrade head'
   script:
     - PYTHONPATH=. pytest -x --junitxml=report_integration_tests.xml --cov=app --cov-config=.coveragerc --cov-report=xml:integration_coverage.xml tests/integration/
   artifacts:
