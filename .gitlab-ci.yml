@@ -100,8 +100,9 @@ integration_testing:
     POSTGRES_PASSWORD: mysecretpassword
     POSTGRES_DB: postgres
   before_script:
-    - pip install -r requirements.txt
-    - PYTHONPATH=. alembic upgrade head
+    - 'pip install -r requirements.txt'
+    - 'pip show alembic'
+    - 'PYTHONPATH=. python -m alembic upgrade head'
   script:
     - PYTHONPATH=. pytest -x --junitxml=report_integration_tests.xml --cov=app --cov-config=.coveragerc --cov-report=xml:integration_coverage.xml tests/integration/
   artifacts:
