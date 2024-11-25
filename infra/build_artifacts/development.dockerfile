@@ -16,7 +16,7 @@ ENV USER=web
 ENV HOME="/${USER}"
 
 ENV \
-    POETRY_VERSION=1.0.10 \
+    POETRY_VERSION=1.5.1 \
     POETRY_VIRTUALENVS_IN_PROJECT=1 \
     # write messages immediately to stream
     PYTHONUNBUFFERED=1 \
@@ -45,6 +45,7 @@ RUN adduser --disabled-password --gecos '' --home "${HOME}" --uid "${USER_ID}" -
 USER ${USER}
 WORKDIR ${HOME}
 
+# Install the correct version of Poetry
 RUN pip install --user poetry==${POETRY_VERSION}
 
 COPY --chown=${USER_ID}:${GROUP_ID} ./pyproject.toml ./poetry.lock ${HOME}/
@@ -56,12 +57,8 @@ RUN pip install psycopg2
 
 COPY --chown=${USER_ID}:${GROUP_ID} ./app ${HOME}/app/
 
-# Copy the entrypoint script with read and execute permissions only
+# Copy the entrypoint script with appropriate permissions
 COPY --chown=${USER_ID}:${GROUP_ID} --chmod=0555 ./infra/build_artifacts/docker-entrypoint.sh ${HOME}/scripts/
-
-# If your Docker version doesn't support --chmod flag, use chmod command
-# COPY --chown=${USER_ID}:${GROUP_ID} ./infra/build_artifacts/docker-entrypoint.sh ${HOME}/scripts/
-# RUN chmod 0555 ${HOME}/scripts/docker-entrypoint.sh
 
 COPY --chown=${USER_ID}:${GROUP_ID} ./alembic.ini ${HOME}/
 COPY --chown=${USER_ID}:${GROUP_ID} ./tests ${HOME}/tests/
