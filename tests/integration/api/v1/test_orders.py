@@ -64,6 +64,7 @@ def dummy_user(db_session: Session):
     unique_username = f'test_user_{uuid.uuid4()}'
     user_schema = UserCreateSchema(username=unique_username)
     user = create_user(user_schema, db_session)
+    db_session.commit()
     yield user
     # Cleanup is handled in the test's finally block
 
@@ -82,6 +83,7 @@ def unique_dough(db_session: Session):
         'stock': 100,
     }
     dough = create_dough(DoughCreateSchema(**initial_data), db_session)
+    db_session.commit()
     yield dough
     # Cleanup is handled in the test's finally block
 
@@ -99,6 +101,7 @@ def dummy_beverage(db_session: Session):
         'stock': 100,
     }
     beverage = create_beverage(BeverageCreateSchema(**initial_data), db_session)
+    db_session.commit()
     yield beverage
     # Cleanup is handled in the test's finally block
 
@@ -336,35 +339,43 @@ def test_order_crud_additional(db_session: Session, dummy_user, unique_dough, du
             delete_beverage_from_order(created_order.id, added_beverage_1.beverage_id, db_session)
         if added_beverage_2:
             delete_beverage_from_order(created_order.id, added_beverage_2.beverage_id, db_session)
+        db_session.commit()
 
         # Delete the second beverage
         if second_beverage:
             delete_beverage_by_id(second_beverage.id, db_session)
+        db_session.commit()
 
         # Delete pizzas
         if added_pizza_1:
             delete_pizza_from_order(created_order, added_pizza_1.id, db_session)
         if added_pizza_2:
             delete_pizza_from_order(created_order, added_pizza_2.id, db_session)
+        db_session.commit()
 
         # Delete pizza types
         if pizza_type_1:
             delete_pizza_type_by_id(pizza_type_1.id, db_session)
         if pizza_type_2:
             delete_pizza_type_by_id(pizza_type_2.id, db_session)
+        db_session.commit()
 
         # Delete the order
         if created_order:
             delete_order_by_id(created_order.id, db_session)
+        db_session.commit()
 
         # Delete the first beverage
         if dummy_beverage:
             delete_beverage_by_id(dummy_beverage.id, db_session)
+        db_session.commit()
 
         # Delete the dough
         if unique_dough:
             delete_dough_by_id(unique_dough.id, db_session)
+        db_session.commit()
 
         # Delete the user
         if dummy_user:
             delete_user_by_id(dummy_user.id, db_session)
+        db_session.commit()
