@@ -23,7 +23,7 @@
 stages:
   - print_readme
   - commit
-  - integration_test
+#  - integration_test
   - acceptance
   - release
 
@@ -85,7 +85,7 @@ flake8_checking:
     - schedules
 
 integration_testing:
-  stage: integration_test
+  stage: commit
   image: python:3.9-slim
   services:
     - name: postgres:15.0-alpine
@@ -121,7 +121,7 @@ integration_testing:
 
 
 sonarqube-check:
-  stage: integration_test
+  stage: commit
   image: 
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""] 
