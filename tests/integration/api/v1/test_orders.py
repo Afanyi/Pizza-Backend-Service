@@ -43,7 +43,7 @@ from app.database.models import OrderStatus, Pizza
 from app.database.connection import SessionLocal
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def db_session():
     """
     Fixture for creating a test database session.
@@ -52,11 +52,15 @@ def db_session():
     db = SessionLocal()
     try:
         yield db
+        db.commit()  # Ensure any remaining transactions are committed
+    except Exception:
+        db.rollback()  # Rollback in case of exceptions
+        raise
     finally:
         db.close()
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def dummy_user(db_session: Session):
     """
     Fixture for creating a dummy user for testing.
@@ -69,7 +73,7 @@ def dummy_user(db_session: Session):
     # Cleanup is handled in the test's finally block
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def unique_dough(db_session: Session):
     """
     Fixture for creating a unique dough for testing purposes.
@@ -88,7 +92,7 @@ def unique_dough(db_session: Session):
     # Cleanup is handled in the test's finally block
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def dummy_beverage(db_session: Session):
     """
     Fixture for creating a unique beverage for testing purposes.
@@ -253,6 +257,7 @@ def test_order_crud_additional(db_session: Session, dummy_user, unique_dough, du
         }
         order_schema = OrderCreateSchema(user_id=dummy_user.id, address=address_data)
         created_order = create_order(order_schema, db_session)
+        db_session.commit()
 
         # Step 2: Add multiple pizzas to the order
         pizza_schema_1 = PizzaTypeCreateSchema(
@@ -263,6 +268,7 @@ def test_order_crud_additional(db_session: Session, dummy_user, unique_dough, du
         )
         pizza_type_1 = create_pizza_type(pizza_schema_1, db_session)
         added_pizza_1 = add_pizza_to_order(created_order, pizza_type_1, db_session)
+        db_session.commit()
 
         pizza_schema_2 = PizzaTypeCreateSchema(
             name=f'Test Pizza 2 {uuid.uuid4()}',
@@ -272,11 +278,13 @@ def test_order_crud_additional(db_session: Session, dummy_user, unique_dough, du
         )
         pizza_type_2 = create_pizza_type(pizza_schema_2, db_session)
         added_pizza_2 = add_pizza_to_order(created_order, pizza_type_2, db_session)
+        db_session.commit()
 
         # Step 3: Add multiple beverages to the order
         # Add the first beverage
         beverage_schema_1 = OrderBeverageQuantityCreateSchema(beverage_id=dummy_beverage.id, quantity=2)
         added_beverage_1 = create_beverage_quantity(created_order, beverage_schema_1, db_session)
+        db_session.commit()
 
         # Create and add a second, distinct beverage
         second_beverage_schema = BeverageCreateSchema(
@@ -288,6 +296,7 @@ def test_order_crud_additional(db_session: Session, dummy_user, unique_dough, du
         second_beverage = create_beverage(second_beverage_schema, db_session)
         beverage_schema_2 = OrderBeverageQuantityCreateSchema(beverage_id=second_beverage.id, quantity=5)
         added_beverage_2 = create_beverage_quantity(created_order, beverage_schema_2, db_session)
+        db_session.commit()
 
         # Step 4: Fetch all orders and verify
         all_orders = get_all_orders(db_session)
@@ -315,6 +324,7 @@ def test_order_crud_additional(db_session: Session, dummy_user, unique_dough, du
             db=db_session,
         )
         assert updated_beverage.quantity == new_quantity, 'Beverage quantity was not updated correctly.'
+        db_session.commit()
 
         # Step 8: Fetch beverage quantity by ID and verify
         fetched_beverage = get_beverage_quantity_by_id(
@@ -330,6 +340,7 @@ def test_order_crud_additional(db_session: Session, dummy_user, unique_dough, du
         assert len(all_beverages) == 2, 'There should be two beverage quantities associated with the order.'
         beverage_ids = [bev.beverage_id for bev in all_beverages]
         assert added_beverage_1.beverage_id in beverage_ids and added_beverage_2.beverage_id in beverage_ids
+        db_session.commit()
 
     finally:
         # Cleanup test data in the correct order to avoid ForeignKeyViolation
