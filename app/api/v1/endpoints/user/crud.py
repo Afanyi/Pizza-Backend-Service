@@ -47,7 +47,7 @@ def delete_user_by_id(user_id: uuid.UUID, db: Session):
         db.commit()
 
 
-def get_order_history_of_user(user_id: uuid.UUID, db: Session):
+def get_order_history_of_user(user_id: uuid.UUID, db: Session) -> list[type[Order]]:
     entities = db.query(Order) \
         .filter(Order.user_id == user_id) \
         .filter(Order.order_status == 'COMPLETED').all()
@@ -55,13 +55,10 @@ def get_order_history_of_user(user_id: uuid.UUID, db: Session):
 
 
 def get_open_orders_of_user(user_id: uuid.UUID, db: Session):
-    entities = db.query(Order) \
-        .filter(Order.user_id == user_id) \
-        .filter(Order.order_status != 'COMPLETED').all()
+    entities = db.query(Order) .filter(Order.user_id == user_id) .filter(Order.order_status != 'COMPLETED').all()
     return entities
 
 
 def get_all_not_completed_orders(db: Session):
-    entities = db.query(Order) \
-        .filter(Order.order_status != 'COMPLETED').all()
+    entities = db.query(Order) .filter(Order.order_status != 'COMPLETED').all()
     return entities

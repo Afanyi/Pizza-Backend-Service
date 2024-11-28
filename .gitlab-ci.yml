@@ -23,6 +23,7 @@
 stages:
   - print_readme
   - commit
+#  - integration_test
   - acceptance
   - release
 
@@ -83,8 +84,44 @@ flake8_checking:
   except:
     - schedules
 
+integration_testing:
+  stage: commit
+  needs:
+    - create_development_container_image
+  image:
+    name: $CI_REGISTRY_IMAGE/$DEVELOPMENT_CONTAINER_NAME:$DEVELOPMENT_CONTAINER_TAG
+    entrypoint: [ "" ]
+  services:
+    - name: postgres:15.0-alpine
+      alias: db-dev
+  variables:
+    DATABASE_HOST: db-dev
+    DATABASE_PORT: 5432
+    DATABASE_USERNAME: postgres
+    DATABASE_PASSWORD: mysecretpassword
+    DATABASE_NAME: postgres
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: mysecretpassword
+    POSTGRES_DB: postgres
+  before_script:
+    - 'PYTHONPATH=. python -m alembic upgrade head'
+  script:
+    - PYTHONPATH=. pytest -x --junitxml=report_integration_tests.xml --cov=app --cov-config=.coveragerc --cov-report=xml:integration_coverage.xml tests/integration/
+  artifacts:
+    reports:
+      junit: report_integration_tests.xml
+    paths:
+      - report_integration_tests.xml
+      - integration_coverage.xml
+  only:
+    - branches
+    - merge_requests
+    - main
+    - master
+
+
 sonarqube-check:
-  stage: commit  
+  stage: commit
   image: 
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""] 
@@ -98,6 +135,11 @@ sonarqube-check:
   script: 
     - sonar-scanner
   allow_failure: false 
+  needs:
+    - integration_testing
+  artifacts:
+    paths:
+      - .sonar/report-task.txt
   only:
     - branches
     - merge_requests

@@ -1,4 +1,20 @@
+# .coveragerc
+
 [run]
+source = app
+branch = True
 omit =
-    # omit anything in migrations
-    app/database/migrations/*
+    */tests/*
+    */venv/*
+    */migrations/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __str__
+    if self\.debug
+    raise AssertionError
+    raise NotImplementedError
+
+[html]
+directory = htmlcov
