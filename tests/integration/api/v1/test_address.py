@@ -17,8 +17,8 @@ from app.api.v1.endpoints.order.address.crud import (
 def test_db():
     engine = create_engine('sqlite:///:memory:')
     Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    db = TestingSessionLocal()
+    testing_session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    db = testing_session_local()
     yield db
     db.close()
 
