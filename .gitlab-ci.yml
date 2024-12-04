@@ -237,7 +237,7 @@ service_testing:
     name: $CI_REGISTRY_IMAGE/$DEVELOPMENT_CONTAINER_NAME:$DEVELOPMENT_CONTAINER_TAG
     entrypoint: [ "" ]
   needs:
-    - create_release_candidate
+    - create_development_container_image
   variables:
     API_SERVER: Renz-Mi2-Red.se-ws24.users.h-da.cloud # Replace with your actual API server URL
     API_PORT: 30080 # Replace with your actual API port
