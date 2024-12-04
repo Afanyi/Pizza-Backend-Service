@@ -231,13 +231,40 @@ migrate_database_in_staging:
   except:
     - schedule
 
+empty_staging_database:
+  stage: acceptance
+  image: postgres:15.0-alpine
+  script:
+    - echo "Resetting staging database..."
+    - |
+      if [[ -n "$DATABASE_HOST" && -n "$DATABASE_PORT" && -n "$DATABASE_NAME" ]]; then
+        PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -U $DATABASE_USERNAME -d $DATABASE_NAME -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+        echo "Staging database reset completed."
+      else
+        echo "Database environment variables are not set. Skipping database reset."
+        exit 1
+      fi
+  variables:
+    DATABASE_HOST: db-dev
+    DATABASE_PORT: 5432
+    DATABASE_USERNAME: postgres
+    DATABASE_PASSWORD: mysecretpassword
+    DATABASE_NAME: postgres
+  needs:
+    - migrate_database_in_staging
+  only:
+    - branches
+    - merge_requests
+    - main
+    - master
+
 service_testing:
   stage: acceptance
   image:
     name: $CI_REGISTRY_IMAGE/$DEVELOPMENT_CONTAINER_NAME:$DEVELOPMENT_CONTAINER_TAG
     entrypoint: [ "" ]
   needs:
-    - migrate_database_in_staging
+    - empty_staging_database
   variables:
     API_SERVER: Renz-Mi2-Red.se-ws24.users.h-da.cloud # Replace with your actual API server URL
     API_PORT: 30080 # Replace with your actual API port
