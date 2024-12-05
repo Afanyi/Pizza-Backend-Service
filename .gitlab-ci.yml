@@ -236,6 +236,9 @@ empty_staging_database:
   image:
     name: dtzar/helm-kubectl:3.10.3
     entrypoint: [ '' ]
+  before_script:
+    # Update the package list and install the PostgreSQL client
+    - apk update && apk add postgresql-client
   script:
     - echo "Resetting staging database..."
     - |
