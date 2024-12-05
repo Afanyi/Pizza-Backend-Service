@@ -237,19 +237,26 @@ empty_staging_database:
   script:
     - echo "Resetting staging database..."
     - |
-      if [[ -n "$DATABASE_HOST" && -n "$DATABASE_PORT" && -n "$DATABASE_NAME" ]]; then
-        PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -U $DATABASE_USERNAME -d $DATABASE_NAME -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+      if [[ -n "$DATABASE_HOST" && -n "$DATABASE_PORT" && -n "$DATABASE_NAME" && -n "$DATABASE_USERNAME" && -n "$DATABASE_PASSWORD" ]]; then
+        export PGPASSWORD=$DATABASE_PASSWORD
+        psql -h $DATABASE_HOST -U $DATABASE_USERNAME -d $DATABASE_NAME -c "DROP SCHEMA IF EXISTS public CASCADE;"
+        psql -h $DATABASE_HOST -U $DATABASE_USERNAME -d $DATABASE_NAME -c "CREATE SCHEMA public;"
         echo "Staging database reset completed."
       else
-        echo "Database environment variables are not set. Skipping database reset."
+        echo "One or more required environment variables are not set."
+        echo "DATABASE_HOST: $DATABASE_HOST"
+        echo "DATABASE_PORT: $DATABASE_PORT"
+        echo "DATABASE_NAME: $DATABASE_NAME"
+        echo "DATABASE_USERNAME: $DATABASE_USERNAME"
+        echo "DATABASE_PASSWORD: <hidden>"
         exit 1
       fi
   variables:
-    DATABASE_HOST: db-dev
+    DATABASE_HOST: database-staging-postgresql-0
     DATABASE_PORT: 5432
-    DATABASE_USERNAME: postgres
-    DATABASE_PASSWORD: mysecretpassword
-    DATABASE_NAME: postgres
+    DATABASE_USERNAME: SIZpPyajY8wj
+    DATABASE_PASSWORD: BUmmLZjoIvwL
+    DATABASE_NAME: se-lab
   needs:
     - migrate_database_in_staging
   only:
