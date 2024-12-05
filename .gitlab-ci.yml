@@ -233,7 +233,9 @@ migrate_database_in_staging:
 
 empty_staging_database:
   stage: acceptance
-  image: postgres:15.0-alpine
+  image:
+    name: dtzar/helm-kubectl:3.10.3
+    entrypoint: [ '' ]
   script:
     - echo "Resetting staging database..."
     - |
@@ -252,7 +254,7 @@ empty_staging_database:
         exit 1
       fi
   variables:
-    DATABASE_HOST: database-staging-postgresql-0
+    DATABASE_HOST: database-staging-postgresql.staging.svc.cluster.local
     DATABASE_PORT: 5432
     DATABASE_USERNAME: SIZpPyajY8wj
     DATABASE_PASSWORD: BUmmLZjoIvwL
