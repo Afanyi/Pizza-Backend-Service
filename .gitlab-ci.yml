@@ -244,6 +244,7 @@ empty_staging_database:
       if [[ -n "$DATABASE_HOST" && -n "$DATABASE_PORT" && -n "$DATABASE_NAME" && -n "$DATABASE_USERNAME" && -n "$DATABASE_PASSWORD" ]]; then
         export PGPASSWORD=$DATABASE_PASSWORD
         psql -h $DATABASE_HOST -U $DATABASE_USERNAME -d $DATABASE_NAME -c "TRUNCATE TABLE customer_order, pizza_type_topping_quantity, order_beverage_quantity, pizza, pizza_type, topping, dough, beverage, \"user\", address RESTART IDENTITY CASCADE;"
+      fi
 
   variables:
     DATABASE_HOST: database-staging-postgresql.staging.svc.cluster.local
