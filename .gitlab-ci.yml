@@ -237,21 +237,14 @@ empty_staging_database:
     name: dtzar/helm-kubectl:3.10.3
     entrypoint: [ '' ]
   before_script:
-    - apk update && apk add postgresql-client
+    - cp infra/deployment/kubeconfig final-kubeconfig
+    - sed -i "s|enter_instace_url|$team_instance_link|g" final-kubeconfig
+    - sed -i "s|enter_kubernetes_token|$dashboard_token|g" final-kubeconfig
   script:
+    # - export POD_NAME=`kubectl --kubeconfig=final-kubeconfig get pods --namespace staging --no-headers -l app=stagingcontainer -o custom-columns=":metadata.name"`
     - echo "Truncating all tables in the staging database..."
-    - |
-      if [[ -n "$DATABASE_HOST" && -n "$DATABASE_PORT" && -n "$DATABASE_NAME" && -n "$DATABASE_USERNAME" && -n "$DATABASE_PASSWORD" ]]; then
-        export PGPASSWORD=$DATABASE_PASSWORD
-        psql -h $DATABASE_HOST -U $DATABASE_USERNAME -d $DATABASE_NAME -c "TRUNCATE TABLE customer_order, pizza_type_topping_quantity, order_beverage_quantity, pizza, pizza_type, topping, dough, beverage, \"user\", address RESTART IDENTITY CASCADE;"
-      fi
-
-  variables:
-    DATABASE_HOST: database-staging-postgresql.staging.svc.cluster.local
-    DATABASE_PORT: 5432
-    DATABASE_USERNAME: SIZpPyajY8wj
-    DATABASE_PASSWORD: BUmmLZjoIvwL
-    DATABASE_NAME: se-lab
+    - kubectl --kubeconfig=final-kubeconfig exec database-staging-postgresql-0 --namespace staging -- sh -c 'PGPASSWORD=$POSTGRES_PASSWORD psql -U $POSTGRES_USER -d $POSTGRES_DATABASE -c "TRUNCATE TABLE customer_order, pizza_type_topping_quantity, order_beverage_quantity, pizza, pizza_type, topping, dough, beverage, \"user\", address RESTART IDENTITY CASCADE;"'
+    - rm final-kubeconfig
   needs:
     - migrate_database_in_staging
   only:
