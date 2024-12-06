@@ -237,25 +237,14 @@ empty_staging_database:
     name: dtzar/helm-kubectl:3.10.3
     entrypoint: [ '' ]
   before_script:
-    # Update the package list and install the PostgreSQL client
     - apk update && apk add postgresql-client
   script:
-    - echo "Resetting staging database..."
+    - echo "Truncating all tables in the staging database..."
     - |
       if [[ -n "$DATABASE_HOST" && -n "$DATABASE_PORT" && -n "$DATABASE_NAME" && -n "$DATABASE_USERNAME" && -n "$DATABASE_PASSWORD" ]]; then
         export PGPASSWORD=$DATABASE_PASSWORD
-        psql -h $DATABASE_HOST -U $DATABASE_USERNAME -d $DATABASE_NAME -c "DROP SCHEMA IF EXISTS public CASCADE;"
-        psql -h $DATABASE_HOST -U $DATABASE_USERNAME -d $DATABASE_NAME -c "CREATE SCHEMA public;"
-        echo "Staging database reset completed."
-      else
-        echo "One or more required environment variables are not set."
-        echo "DATABASE_HOST: $DATABASE_HOST"
-        echo "DATABASE_PORT: $DATABASE_PORT"
-        echo "DATABASE_NAME: $DATABASE_NAME"
-        echo "DATABASE_USERNAME: $DATABASE_USERNAME"
-        echo "DATABASE_PASSWORD: <hidden>"
-        exit 1
-      fi
+        psql -h $DATABASE_HOST -U $DATABASE_USERNAME -d $DATABASE_NAME -c "TRUNCATE TABLE customer_order, pizza_type_topping_quantity, order_beverage_quantity, pizza, pizza_type, topping, dough, beverage, \"user\", address RESTART IDENTITY CASCADE;"
+
   variables:
     DATABASE_HOST: database-staging-postgresql.staging.svc.cluster.local
     DATABASE_PORT: 5432
