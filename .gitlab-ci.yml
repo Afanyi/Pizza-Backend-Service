@@ -248,7 +248,6 @@ empty_staging_database:
   needs:
     - migrate_database_in_staging
   only:
-    - branches
     - merge_requests
     - main
     - master
@@ -261,7 +260,7 @@ service_testing:
   needs:
     - empty_staging_database
   variables:
-    API_SERVER: Renz-Mi2-Red.se-ws24.users.h-da.cloud # Replace with your actual API server URL
+    API_SERVER: $team_instance_link # renz-mi2-red.se-ws24.users.h-da.cloud # Replace with your actual API server URL
     API_PORT: 30080 # Replace with your actual API port
   script:
     - export API_SERVER=$API_SERVER
@@ -274,7 +273,6 @@ service_testing:
       - report_service_tests.xml
   allow_failure: false
   only:
-    - branches
     - merge_requests
     - main
     - master
