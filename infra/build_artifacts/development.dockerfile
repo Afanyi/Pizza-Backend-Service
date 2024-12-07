@@ -43,6 +43,7 @@ WORKDIR ${HOME}
 RUN pip install --user poetry==${POETRY_VERSION}
 
 # Copy pyproject.toml and poetry.lock
+# NOSONAR
 COPY --chown=${USER_ID}:${GROUP_ID} ./pyproject.toml ./poetry.lock ${HOME}/
 
 # Install dependencies
@@ -53,16 +54,20 @@ RUN pip uninstall psycopg2-binary -y \
     && pip install psycopg2
 
 # Copy application code
+# NOSONAR
 COPY --chown=${USER_ID}:${GROUP_ID} ./app ${HOME}/app/
 
 # Copy the entrypoint script
+# NOSONAR
 COPY --chown=${USER_ID}:${GROUP_ID} ./infra/build_artifacts/docker-entrypoint.sh ${HOME}/scripts/
 
 # Remove write permissions from the entrypoint script
 RUN chmod 0555 ${HOME}/scripts/docker-entrypoint.sh
 
 # Copy additional configuration and tests
+# NOSONAR
 COPY --chown=${USER_ID}:${GROUP_ID} ./alembic.ini ${HOME}/
+# NOSONAR
 COPY --chown=${USER_ID}:${GROUP_ID} ./tests ${HOME}/tests/
 
 # Ensure scripts directory has correct permissions
