@@ -38,15 +38,13 @@ USER ${USER}
 WORKDIR ${HOME}
 
 RUN pip install --user poetry
-# NOSONAR
+
 COPY --chown=${USER_ID}:${GROUP_ID} ./pyproject.toml ./poetry.lock ${HOME}/
 
 RUN poetry install --no-dev
-# NOSONAR
+
 COPY --chown=${USER_ID}:${GROUP_ID} ./app ${HOME}/app/
-# NOSONAR
 COPY --chown=${USER_ID}:${GROUP_ID} ./infra/build_artifacts/docker-entrypoint.sh ${HOME}/scripts/
-# NOSONAR
 COPY --chown=${USER_ID}:${GROUP_ID} ./alembic.ini ${HOME}/
 
 EXPOSE 8000
