@@ -70,8 +70,8 @@ def test_user_create_read_update_delete(db):
     assert new_username_user.id == created_user_id, 'User ID should match for updated username'
 
     completed_orders = user_crud.get_order_history_of_user(updated_user.id, db)
-    opened_orders = user_crud.get_order_history_of_user(created_user_id, db)
-    not_completed_orders = user_crud.get_order_history_of_user(created_user_id, db)
+    opened_orders = user_crud.get_open_orders_of_user(updated_user.id, db)
+    not_completed_orders = user_crud.get_all_not_completed_orders(db)
     assert len(completed_orders) == 0, 'Order history should have one order'
     assert len(opened_orders) == 0, 'Order history should have one order'
     assert len(not_completed_orders) == 0, 'Order history should have one order'
