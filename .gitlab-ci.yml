@@ -75,7 +75,7 @@ flake8_checking:
     entrypoint: [ "" ]
   script:
     - flakeheaven lint app/ tests/
-  allow_failure: true
+  allow_failure: false
   only:
     - branches
     - merge_requests
@@ -248,7 +248,6 @@ empty_staging_database:
   needs:
     - migrate_database_in_staging
   only:
-    - branches
     - merge_requests
     - main
     - master
@@ -274,7 +273,6 @@ service_testing:
       - report_service_tests.xml
   allow_failure: false
   only:
-    - branches
     - merge_requests
     - main
     - master
