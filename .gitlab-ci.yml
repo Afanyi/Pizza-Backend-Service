@@ -75,7 +75,7 @@ flake8_checking:
     entrypoint: [ "" ]
   script:
     - flakeheaven lint app/ tests/
-  allow_failure: true
+  allow_failure: false
   only:
     - branches
     - merge_requests
