@@ -57,7 +57,14 @@ stages:
         <<: *cola_beverage
         id: "{beverage_id}"
 
-#  - name: Edge Read - Check for status 404 if we try to get an beverage with a not existing id 00000000-0000-0000-0000-000000000000
+  - name: Edge Read - Check for status 404 if we try to get a beverage with a non-existing id
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/beverages/00000000-0000-0000-0000-000000000000
+      method: GET
+    response:
+      status_code: 404
+      json:
+        detail: "Item not found"
 
   - name: Read - Get a list of beverages
     request:
@@ -101,9 +108,32 @@ stages:
         json:
           beverage_id2: id
 
-#  - name: Edge Update - Check for status if we update beverage to an already existing name
+  - name: Edge Update - Check for status if we update beverage to an already existing name
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/beverages/{beverage_id}
+      method: PUT
+      json:
+        <<: *cola_beverage
+        name: "Sprite"  # Name already taken by another beverage
+    response:
+      status_code: 303
+      headers:
+        location: "http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/beverages/{beverage_id2}"
 
 #  - name: Edge Update - Check for status 404 if we update with a non existing id
+  - name: Edge Update - Check for status 404 if we update with a non-existing id
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/beverages/00000000-0000-0000-0000-000000000000
+      method: PUT
+      json:
+        name: "TestBeverage"
+        price: 5.99
+        description: "This beverage has an invalid ID"
+        stock: 10
+    response:
+      status_code: 404
+      json:
+        detail: "Item not found"
 
 # Check deleting beverages
 
@@ -122,3 +152,11 @@ stages:
       status_code: 204
 
 #  - name: Edge Delete - Check for status 404 if we delete a non-existing id
+  - name: Edge Delete - Check for status 404 if we delete a non-existing id
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/beverages/00000000-0000-0000-0000-000000000000
+      method: DELETE
+    response:
+      status_code: 404
+      json:
+        detail: "Item not found"
