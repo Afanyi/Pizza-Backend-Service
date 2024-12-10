@@ -3,6 +3,7 @@ import logging
 from typing import List, Optional, TypeVar
 
 from fastapi import APIRouter, Depends, Request, Response, status, HTTPException
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 import app.api.v1.endpoints.beverage.crud as beverage_crud
@@ -217,6 +218,11 @@ def create_order_beverage(order_id: uuid.UUID, beverage_quantity: OrderBeverageQ
     if not beverage:
         logging.warning(f'Beverage with ID {beverage_quantity.beverage_id} not found.')
         raise HTTPException(status_code=404, detail=ITEM_NOT_FOUND)
+
+    beverage_quantity_found = order_crud.get_beverage_quantity_by_id(order_id, beverage_quantity.beverage_id, db)
+    if beverage_quantity_found:
+        url = request.url_for('get_order_beverages', order_id=beverage_quantity_found.order_id)
+        return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
     if not stock_beverage_crud.beverage_is_available(beverage_quantity.beverage_id, beverage_quantity.quantity, db):
         logging.warning(f'Insufficient stock for beverage ID {beverage_quantity.beverage_id}')
