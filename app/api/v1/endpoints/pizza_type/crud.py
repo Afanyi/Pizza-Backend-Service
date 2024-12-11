@@ -13,10 +13,29 @@ logging.basicConfig(level=logging.INFO)
 
 def create_pizza_type(schema: PizzaTypeCreateSchema, db: Session):
     logging.info(f'Creating a new pizza type with data: {schema.dict()}')
-    entity = PizzaType(**schema.dict())
-    db.add(entity)
-    db.commit()
-    logging.info(f'Pizza type created successfully with ID: {entity.id}')
+    try:
+        # Create entity from schema
+        entity = PizzaType(**schema.dict())
+        db.add(entity)
+        logging.info(f'Entity added to the session: {schema.dict()}')
+
+        # Commit transaction
+        db.commit()
+        logging.info(f'Transaction committed successfully: {schema.dict()}')
+
+        # Refresh the entity
+        db.refresh(entity)
+        logging.info(f'Entity refreshed: {entity}')
+
+        # Log success
+        logging.info(f'Pizza type created successfully with ID: {entity.id}')
+    except Exception as e:
+        # Rollback on error
+        db.rollback()
+        # Log error with schema information, ensuring safety
+        logging.error(f'Failed to create pizza type. Error: {e}, Data: {schema.dict()}')
+        raise
+
     return entity
 
 
