@@ -33,8 +33,8 @@ class PizzaType(Base):
 
     name: Mapped[str] = mapped_column(nullable=False, unique=True)
     price: Mapped[decimal.Decimal] = mapped_column(Numeric(10, 2), nullable=False)
-    description: Mapped[str] = mapped_column(String(30), nullable=False, default='')
-
+    description: Mapped[str] = mapped_column(String(50), nullable=False, default='')
+    #   solve error for diavolo max length of string increased to 50
     dough_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('dough.id'), nullable=False)
     dough: Mapped['Dough'] = relationship()
     toppings: Mapped[List['PizzaTypeToppingQuantity']] = relationship(cascade=ALL_DELETE_ORPHAN,
