@@ -10,6 +10,9 @@ import app.api.v1.endpoints.user.crud as user_crud
 from app.api.v1.endpoints.user.schemas import UserSchema, UserCreateSchema
 from app.database.connection import SessionLocal
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
 ITEM_NOT_FOUND = 'Item not found'
 
 router = APIRouter()
@@ -27,13 +30,20 @@ def get_db():
 def get_all_users(
         db: Session = Depends(get_db),
 ):
+    logging.info('Fetching all users.')
     users = user_crud.get_all_users(db)
+    if users:
+        logging.info(f'Total users fetched: {len(users)}')
+    else:
+        logging.warning('No users found.')
     return users
 
 
 @router.post('', response_model=UserSchema, status_code=status.HTTP_201_CREATED, tags=['user'])
 def create_user(user: UserCreateSchema, db: Session = Depends(get_db)):
+    logging.info(f'Creating a new user with username: {user.username}')
     new_user = user_crud.create_user(user, db)
+    logging.info(f'User created successfully with username: {new_user.username} (ID: {new_user.id})')
     return new_user
 
 
@@ -43,13 +53,15 @@ def update_user(
         changed_user: UserCreateSchema,
         db: Session = Depends(get_db),
 ):
+    logging.info(f'Updating user with ID: {user_id}')
     user_found = user_crud.get_user_by_id(user_id, db)
 
     if user_found:
         user_crud.update_user(user_found, changed_user, db)
+        logging.info(f'User with ID {user_id} updated successfully.')
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     else:
-        logging.error('User {} not found'.format(user_id))
+        logging.error(f'User with ID {user_id} not found.')
         raise HTTPException(status_code=404, detail=ITEM_NOT_FOUND)
 
 
@@ -57,11 +69,14 @@ def update_user(
 def get_user(user_id: uuid.UUID,
              response: Response,
              db: Session = Depends(get_db)):
+    logging.info(f'Fetching user with ID: {user_id}')
     user_found = user_crud.get_user_by_id(user_id, db)
 
     if not user_found:
+        logging.warning(f'User with ID {user_id} not found.')
         raise HTTPException(status_code=404, detail=ITEM_NOT_FOUND)
 
+    logging.info(f'User fetched successfully: {user_found.username} (ID: {user_id})')
     return user_found
 
 
@@ -70,10 +85,13 @@ def delete_user(
         user_id: uuid.UUID,
         db: Session = Depends(get_db),
 ):
+    logging.info(f'Deleting user with ID: {user_id}')
     user_found = user_crud.get_user_by_id(user_id, db)
 
     if not user_found:
+        logging.warning(f'User with ID {user_id} not found.')
         raise HTTPException(status_code=404, detail=ITEM_NOT_FOUND)
 
     user_crud.delete_user_by_id(user_id, db)
+    logging.info(f'User with ID {user_id} deleted successfully.')
     return Response(status_code=status.HTTP_204_NO_CONTENT)
