@@ -1,6 +1,6 @@
 import uuid
 import logging
-from typing import List
+from typing import List,Optional
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.api.v1.endpoints.order.address.crud import create_address
@@ -203,3 +203,17 @@ def get_price_of_order(order_id: uuid.UUID, db: Session):
 
     logging.info(f'Total price for order ID {order_id}: {total_price}')
     return total_price
+
+
+def get_orders_by_statuses(statuses: Optional[List[OrderStatus]], db: Session):
+    """
+    Fetch all orders that match one or more of the given statuses.
+    If no statuses are provided, returns all orders.
+    """
+    logging.info(f'Fetching orders by statuses: {statuses}')
+    query = db.query(Order)
+    if statuses and len(statuses) > 0:
+        query = query.filter(Order.order_status.in_(statuses))
+    entities = query.all()
+    logging.info(f'Total orders fetched by statuses {statuses or "None"}: {len(entities)}')
+    return entities
