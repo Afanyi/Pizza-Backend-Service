@@ -189,7 +189,6 @@ def test_order_lifecycle(db_session: Session, dummy_user, unique_dough, dummy_be
         total_price = get_price_of_order(fetched_order.id, db_session)
         assert total_price == expected_price, f'Expected total price {expected_price}, but got {total_price}.'
 
-
         statuses = [updated_order.order_status]
         order_from_status = get_orders_by_statuses(statuses, db_session)
         assert order_from_status[0].order_status == updated_order.order_status, 'Order status get order'
