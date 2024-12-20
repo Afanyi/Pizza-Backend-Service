@@ -34,6 +34,7 @@ from app.api.v1.endpoints.order.crud import (
     get_joined_beverage_quantities_by_order,
     update_beverage_quantity_of_order,
     delete_beverage_from_order,
+    get_orders_by_statuses,
 )
 from app.api.v1.endpoints.order.schemas import (
     OrderCreateSchema,
@@ -187,6 +188,11 @@ def test_order_lifecycle(db_session: Session, dummy_user, unique_dough, dummy_be
         expected_price = Decimal('12.99') + (Decimal('3.50') * 3)
         total_price = get_price_of_order(fetched_order.id, db_session)
         assert total_price == expected_price, f'Expected total price {expected_price}, but got {total_price}.'
+
+
+        statuses = [updated_order.order_status]
+        order_from_status = get_orders_by_statuses(statuses, db_session)
+        assert order_from_status[0].order_status == updated_order.order_status, 'Order status get order'
 
     finally:
         # Cleanup test data in the correct order to avoid ForeignKeyViolation

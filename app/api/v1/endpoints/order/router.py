@@ -34,10 +34,11 @@ def get_db():
     finally:
         db.close()
 
+
 @router.get('/statuses', response_model=List[OrderSchema], tags=['order'])
 def get_orders_by_status(
-    statuses: Optional[List[str]] = Query(None, description="Filter orders by one or more statuses"),
-    db: Session = Depends(get_db)
+    statuses: Optional[List[str]] = Query(None, description='Filter orders by one or more statuses'),
+    db: Session = Depends(get_db),
 ):
     """
     Fetch all orders that match one or more of the given statuses.
@@ -49,9 +50,9 @@ def get_orders_by_status(
         try:
             status_enums = [OrderStatus[status.upper()] for status in statuses]
         except KeyError as e:
-            logging.warning(f"Invalid status provided: {e}")
+            logging.warning(f'Invalid status provided: {e}')
             raise HTTPException(
-                status_code=400, detail=f"Invalid order status: {e}"
+                status_code=400, detail=f'Invalid order status: {e}',
             )
     else:
         status_enums = None  # If no statuses are provided, fetch all orders
@@ -66,7 +67,7 @@ def get_orders_by_status(
 def update_order_status(
     order_id: uuid.UUID,
     order_status: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Update the status of an order by ID.
@@ -77,20 +78,19 @@ def update_order_status(
     order = order_crud.get_order_by_id(order_id, db)
     if not order:
         logging.warning(f'Order with ID {order_id} not found.')
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise HTTPException(status_code=404, detail='Order not found')
 
     # Validate the provided status
     try:
         new_status = OrderStatus[order_status.upper()]
     except KeyError:
         logging.warning(f'Invalid order status provided: {order_status}')
-        raise HTTPException(status_code=422, detail="Invalid order status")
+        raise HTTPException(status_code=422, detail='Invalid order status')
 
     # Update the order status
     order_crud.update_order_status(order, new_status, db)
     logging.info(f'Order status updated successfully for ID {order_id} to {new_status}')
     return Response(status_code=204)
-
 
 
 @router.get('', response_model=List[OrderSchema], tags=['order'])
