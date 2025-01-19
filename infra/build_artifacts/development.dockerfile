@@ -46,7 +46,7 @@ RUN pip install --user poetry==${POETRY_VERSION}
 COPY --chown=${USER_ID}:${GROUP_ID} ./pyproject.toml ./poetry.lock ${HOME}/
 
 # Install dependencies
-RUN poetry install --no-root --without dev
+RUN poetry install --no-root
 
 # Replace psycopg2-binary with psycopg2
 RUN pip uninstall psycopg2-binary -y \
