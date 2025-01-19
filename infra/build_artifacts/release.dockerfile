@@ -35,7 +35,7 @@ WORKDIR ${HOME}
 RUN pip install --user poetry
 
 COPY --chown=${USER_ID}:${GROUP_ID} ./pyproject.toml ./poetry.lock ${HOME}/
-RUN poetry install --no-dev
+RUN poetry install --without dev
 
 COPY --chown=${USER_ID}:${GROUP_ID} ./app ${HOME}/app/
 COPY --chown=${USER_ID}:${GROUP_ID} ./infra/build_artifacts/docker-entrypoint.sh ${HOME}/scripts/
