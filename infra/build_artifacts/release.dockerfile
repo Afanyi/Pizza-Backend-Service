@@ -14,7 +14,7 @@ ENV USER=web
 ENV HOME="/${USER}"
 
 ENV \
-    POETRY_VERSION=1.0.10 \
+    POETRY_VERSION=1.8.5 \
     POETRY_VIRTUALENVS_IN_PROJECT=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -35,7 +35,7 @@ WORKDIR ${HOME}
 RUN pip install --user poetry
 
 COPY --chown=${USER_ID}:${GROUP_ID} ./pyproject.toml ./poetry.lock ${HOME}/
-RUN poetry install --no-dev
+RUN poetry install --without dev --no-root
 
 COPY --chown=${USER_ID}:${GROUP_ID} ./app ${HOME}/app/
 COPY --chown=${USER_ID}:${GROUP_ID} ./infra/build_artifacts/docker-entrypoint.sh ${HOME}/scripts/
