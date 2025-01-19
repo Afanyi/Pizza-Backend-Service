@@ -5,7 +5,7 @@
 ARG PYTHON_IMAGE_VERSION=3.10
 
 #
-### Target: development
+### Target: development #
 #
 FROM python:${PYTHON_IMAGE_VERSION}-slim-buster AS development
 
@@ -16,7 +16,7 @@ ENV USER=web
 ENV HOME="/${USER}"
 
 ENV \
-    POETRY_VERSION=2.0.0 \
+    POETRY_VERSION=1.8.5 \
     POETRY_VIRTUALENVS_IN_PROJECT=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
