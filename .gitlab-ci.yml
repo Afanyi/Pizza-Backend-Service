@@ -243,7 +243,7 @@ empty_staging_database:
   script:
     # - export POD_NAME=`kubectl --kubeconfig=final-kubeconfig get pods --namespace staging --no-headers -l app=stagingcontainer -o custom-columns=":metadata.name"`
     - echo "Truncating all tables in the staging database..."
-    - kubectl --kubeconfig=final-kubeconfig exec database-staging-postgresql-0 --namespace staging -- sh -c 'PGPASSWORD=$POSTGRES_PASSWORD psql -U $POSTGRES_USER -d $POSTGRES_DATABASE -c "TRUNCATE TABLE customer_order, pizza_type_topping_quantity, order_beverage_quantity, pizza, pizza_type, topping, dough, beverage, \"user\", address RESTART IDENTITY CASCADE;"'
+    - kubectl --kubeconfig=final-kubeconfig exec database-staging-postgresql-0 --namespace staging -- sh -c 'PGPASSWORD=$POSTGRES_PASSWORD psql -U $POSTGRES_USER -d $POSTGRES_DATABASE -c "TRUNCATE TABLE customer_order, pizza_type_topping_quantity, order_beverage_quantity, pizza, pizza_type, sauce, topping, dough, beverage, \"user\", address RESTART IDENTITY CASCADE;"'
     - rm final-kubeconfig
   needs:
     - migrate_database_in_staging
