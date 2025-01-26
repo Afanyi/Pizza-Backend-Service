@@ -20,3 +20,6 @@ variables:
   dough_description: "Test Dough"
   dough_stock: 10
 
+  sauce_name: "Marinara"
+  sauce_description: "Classic tomato sauce with garlic and herbs."
+

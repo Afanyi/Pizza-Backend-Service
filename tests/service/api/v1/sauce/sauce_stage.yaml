@@ -1,0 +1,39 @@
+---
+
+name: Sauce stage
+includes:
+  - !include common.yaml
+
+description:
+  Reusable test stage for creating sauces
+
+variables:
+  sauce_name: "Marinara"
+  sauce_description: "Classic tomato sauce with garlic and herbs."
+
+stages:
+
+  - id: create_sauce
+    name: Create the test sauce
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/sauce
+      json: &sauce
+        name: "{sauce_name:s}"
+        description: "{sauce_description}"
+      method: POST
+    response:
+      status_code: 201
+      json:
+        <<: *sauce
+        id: !anything
+      save:
+        json:
+          sauce_id: id
+
+  - id: delete_sauce
+    name: Delete sauce with id
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/sauce/{sauce_id}
+      method: DELETE
+    response:
+      status_code: 204

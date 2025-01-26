@@ -47,6 +47,23 @@ stages:
         json:
           dough_id: id
 
+  - name: Create sauce
+    id: create_sauce
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/sauce
+      method: POST
+      json: &sauce
+        name: "Tomato"
+        description: "Default sauce for tests"
+    response:
+      status_code: 201
+      json:
+        <<: *sauce
+        id: !anything
+      save:
+        json:
+          sauce_id: id
+
   - name: Verify that status code equals 201 when we create a new pizza and the pizza is returned
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types
@@ -54,6 +71,7 @@ stages:
         name: "{pizza_name:s}"
         price: !float "{pizza_price:f}"
         description: "{pizza_description}"
+        default_sauce_id: "{sauce_id}"
         dough_id: "{dough_id}"
       method: POST
     response:
@@ -62,6 +80,7 @@ stages:
         name: "{pizza_name:s}"
         price: !float "{pizza_price:f}"
         description: "{pizza_description}"
+        default_sauce_id: "{sauce_id}"
         id: !anything
       save:
         json:

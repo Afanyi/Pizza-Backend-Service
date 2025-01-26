@@ -1,19 +1,18 @@
----
-
-test_name: Make sure server implements crud functionality for pizza_type endpoint
+test_name: Make sure server implements CRUD functionality for pizza_type endpoint
 
 includes:
   - !include common.yaml
 
-
 stages:
-  - name: Verify that status code equals 201 when we create a new dough and the dough is returned
-    # max_retries and delay_after needs to be set in first stage of each stage to wait for uvicorn
+  ################################################################################################
+  # 1. CREATE DOUGH
+  ################################################################################################
+  - name: Verify 201 when we create a new dough
     max_retries: 10
     delay_after: 2
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/doughs
-      json: &dough
+      json: &dough_request
         name: "{dough_name:s}"
         price: !float "{dough_price:f}"
         description: "{dough_description}"
@@ -22,139 +21,171 @@ stages:
     response:
       status_code: 201
       json:
-        <<: *dough
+        name: "{dough_name:s}"
+        price: !float "{dough_price:f}"
+        description: "{dough_description}"
+        stock: !int "{dough_stock:d}"
         id: !anything
       save:
         json:
           dough_id: id
 
+  ################################################################################################
+  # 2. CREATE SAUCE
+  ################################################################################################
+  - name: Verify 201 when we create a new sauce
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/sauce
+      json: &sauce_request
+        name: "{sauce_name:s}"
+        description: "{sauce_description}"
+      method: POST
+    response:
+      status_code: 201
+      json:
+        name: "{sauce_name:s}"
+        description: "{sauce_description}"
+        id: !anything
+      save:
+        json:
+          sauce_id: id
 
-  - name: Verify that status code equals 201 when we create a new pizza and the pizza is returned
+  ################################################################################################
+  # 3. CREATE PIZZA
+  ################################################################################################
+  # - Separate request and response anchors to avoid "id: !anything" in request
+  ################################################################################################
+  - name: Verify 201 when we create a new pizza
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types
-      json: &salami_type_request
+      json: &pizza_request
         name: "{pizza_name:s}"
         price: !float "{pizza_price:f}"
         description: "{pizza_description}"
+        default_sauce_id: "{sauce_id}"
         dough_id: "{dough_id}"
       method: POST
     response:
       status_code: 201
-      json: &salami_type_response
+      json: &pizza_response
         name: "{pizza_name:s}"
         price: !float "{pizza_price:f}"
         description: "{pizza_description}"
+        default_sauce_id: "{sauce_id}"
         id: !anything
       save:
         json:
           pizza_type_id: id
 
-
-  - name: Verify that status code equals 303 and we get a redirect to an already existing item, when we create a new pizza with a name that already exists
+  ################################################################################################
+  # 4. CREATE PIZZA WITH EXISTING NAME -> SHOULD RETURN 303
+  ################################################################################################
+  - name: Verify 303 when creating a pizza with an existing name
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types
       json:
-        <<: *salami_type_request
-        name: "{pizza_name:s}"
-        price: 9.00
-        description: "My new pizza"
+        <<: *pizza_request
+        price: 9.99
+        description: "Duplicate pizza"
       method: POST
     response:
       status_code: 303
       headers:
         location: "http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{pizza_type_id}"
 
-  - name: Verify that status code equals 404 when we create a new pizza with a non-existent dough
+  ################################################################################################
+  # 5. CREATE PIZZA WITH NON-EXISTENT DOUGH -> 404
+  ################################################################################################
+  - name: Verify 404 when creating a pizza with a non-existent dough
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types
       json:
-        name: "random name"
-        price: !float "{pizza_price:f}"
-        description: "{pizza_description}"
+        name: "InvalidPizza"
+        price: 12.00
+        description: "Invalid dough ID"
         dough_id: "{not_available_id}"
       method: POST
     response:
       status_code: 404
 
-  - name: Get pizza with id
+  ################################################################################################
+  # 6. RETRIEVE PIZZA BY ID
+  ################################################################################################
+  - name: Verify we can retrieve the pizza by ID
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{pizza_type_id}
       method: GET
     response:
       status_code: 200
-      json: &salami_with_topping
-        <<: *salami_type_response
+      json:
+        <<: *pizza_response
         id: "{pizza_type_id}"
 
-  - name: Get pizza with a non existent id
+  ################################################################################################
+  # 7. GET A NON-EXISTENT PIZZA -> 404
+  ################################################################################################
+  - name: Verify 404 for a non-existent pizza ID
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{not_available_id}
       method: GET
     response:
       status_code: 404
 
-  - name: Get a list of pizzas
-    request:
-      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types
-      method: GET
-    response:
-      status_code: 200
-      json:
-        - *salami_with_topping
-
-  - name: Update pizza
+  ################################################################################################
+  # 8. UPDATE PIZZA (PUT)
+  ################################################################################################
+  - name: Verify we can update the pizza
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{pizza_type_id}
       method: PUT
       json:
-        <<: *salami_type_request
-        description: "My new description"
+        <<: *pizza_request
+        description: "Updated description"
     response:
       status_code: 204
 
-  - name: Check if a new pizza is created when pizza gets a new name and name does not already exists
+  ################################################################################################
+  # 9. UPDATE PIZZA NAME -> SHOULD CREATE NEW PIZZA (201)
+  ################################################################################################
+  - name: Verify updating a pizza with a new name creates a new pizza
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{pizza_type_id}
       method: PUT
       json:
-        <<: *salami_type_request
+        <<: *pizza_request
         name: "Cheese"
     response:
       status_code: 201
       json:
-        <<: *salami_type_response
-        id: !anything
         name: "Cheese"
+        price: !float "{pizza_price:f}"
+        description: "{pizza_description}"
+        default_sauce_id: "{sauce_id}"
+        id: !anything
       save:
         json:
-          cheese_id: id
+          new_pizza_id: id
 
-  - name: Check for status 303 if we update pizza to an already existing name
-    request:
-      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{pizza_type_id}
-      method: PUT
-      json:
-        <<: *salami_type_request
-        name: "Cheese"
-    response:
-      status_code: 303
-      headers:
-        location: "http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{cheese_id}"
-
-  - name: Check for status 404 if we update with a non existing id
+  ################################################################################################
+  # 10. UPDATE NON-EXISTENT PIZZA -> 404
+  ################################################################################################
+  - name: Verify 404 when updating a non-existent pizza
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/00000000-0000-0000-0000-000000000000
       method: PUT
       json:
-        <<: *salami_type_request
-        name: "Cheese"
+        <<: *pizza_request
+        name: "NonExistentPizza"
     response:
       status_code: 404
 
-  - name: Create a Topping to put on the Pizza and Verify that status code equals 201 when we create a new topping and the topping is returned
+  ################################################################################################
+  # 11. CREATE A TOPPING
+  ################################################################################################
+  - name: Create a topping and verify 201
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/toppings
-      json: &salami_topping
+      json: &topping_request
         name: "{topping_name:s}"
         price: !float "{topping_price:f}"
         description: "{topping_description}"
@@ -163,25 +194,35 @@ stages:
     response:
       status_code: 201
       json:
-        <<: *salami_topping
+        name: "{topping_name:s}"
+        price: !float "{topping_price:f}"
+        description: "{topping_description}"
+        stock: !int "{topping_stock:d}"
         id: !anything
       save:
         json:
           topping_id: id
 
-  - name: verify that status code equals 201 and the quantity and topping_id is returned when we create a topping pizza_type relation (put a topping on a pizza)
+  ################################################################################################
+  # 12. ADD TOPPING TO PIZZA -> 201
+  ################################################################################################
+  - name: Verify 201 when adding topping to pizza
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{pizza_type_id}/toppings
-      json: &salami_pizza_salami_topping_quantity
+      json: &pizza_topping_relation
         quantity: !int "{quantity:d}"
         topping_id: "{topping_id}"
       method: POST
     response:
       status_code: 201
       json:
-        <<: *salami_pizza_salami_topping_quantity
+        quantity: !int "{quantity:d}"
+        topping_id: "{topping_id}"
 
-  - name: verify that status code equals 404 when trying to add a topping to a non-existent pizza type
+  ################################################################################################
+  # 13. ADD TOPPING TO NON-EXISTENT PIZZA -> 404
+  ################################################################################################
+  - name: Verify 404 when adding topping to a non-existent pizza
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{not_available_id}/toppings
       json:
@@ -191,7 +232,10 @@ stages:
     response:
       status_code: 404
 
-  - name: verify that status code equals 404  when trying to add a non-existent topping to a pizza type
+  ################################################################################################
+  # 14. ADD NON-EXISTENT TOPPING -> 404
+  ################################################################################################
+  - name: Verify 404 when adding a non-existent topping
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{pizza_type_id}/toppings
       json:
@@ -201,86 +245,113 @@ stages:
     response:
       status_code: 404
 
-
-  - name: verify that status code equals 303 and get a redirect when we try to create a topping pizza_type relation which already exists
+  ################################################################################################
+  # 15. DUPLICATE TOPPING-PIZZA RELATION -> 303
+  ################################################################################################
+  - name: Verify 303 if topping already exists on pizza
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{pizza_type_id}/toppings
       json:
-        quantity: !int "{quantity:d}"
-        topping_id: "{topping_id}"
+        <<: *pizza_topping_relation
       method: POST
     response:
       status_code: 303
       headers:
-        location: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{pizza_type_id}/toppings
+        location: "http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{pizza_type_id}/toppings"
 
-  - name: verify that we get status code 200 and all toppings for a pizza
+  ################################################################################################
+  # 16. GET ALL TOPPINGS FOR PIZZA -> 200
+  ################################################################################################
+  - name: Verify 200 and toppings returned for pizza
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{pizza_type_id}/toppings
       method: GET
     response:
       status_code: 200
       json:
-        - *salami_pizza_salami_topping_quantity
+        - quantity: !int "{quantity:d}"
+          topping_id: "{topping_id}"
 
-  - name: verify that we get status code 404 when trying to get all topping from a not existing pizza type
+  ################################################################################################
+  # 17. GET TOPPINGS FROM NON-EXISTENT PIZZA -> 404
+  ################################################################################################
+  - name: Verify 404 when getting toppings for non-existent pizza
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{not_available_id}/toppings
       method: GET
     response:
       status_code: 404
 
-  - name: Get dough of pizza_type
+  ################################################################################################
+  # 18. GET DOUGH FOR PIZZA -> 200
+  ################################################################################################
+  - name: Verify 200 when retrieving dough of existing pizza
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{pizza_type_id}/dough
       method: GET
     response:
       status_code: 200
       json:
-        <<: *dough
+        name: "{dough_name:s}"
+        price: !float "{dough_price:f}"
+        description: "{dough_description}"
+        stock: !int "{dough_stock:d}"
         id: "{dough_id}"
 
-  - name: Verify status code 404 when trying to get the dough of a non-existent pizza type
+  ################################################################################################
+  # 19. GET DOUGH FOR NON-EXISTENT PIZZA -> 404
+  ################################################################################################
+  - name: Verify 404 when retrieving dough of non-existent pizza
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{not_available_id}/dough
       method: GET
     response:
       status_code: 404
 
-  - name: Check for status 404 when trying to delete a non existent pizza type
+  ################################################################################################
+  # 20. DELETE NON-EXISTENT PIZZA -> 404
+  ################################################################################################
+  - name: Verify 404 when deleting non-existent pizza
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/00000000-0000-0000-0000-000000000000
       method: DELETE
     response:
       status_code: 404
 
-  #Important: Delete Pizza before topping when having a pizza_type_topping relationship!!!
-  - name: Delete first created pizza with id
+  ################################################################################################
+  # 21. CLEANUP STEPS
+  ################################################################################################
+  - name: Delete the original pizza
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{pizza_type_id}
       method: DELETE
     response:
       status_code: 204
 
-  - name: Delete second created pizza with id
+  - name: Delete the newly created pizza
     request:
-      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{cheese_id}
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types/{new_pizza_id}
       method: DELETE
     response:
       status_code: 204
 
-  - name: Delete first created topping with id
+  - name: Delete the topping
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/toppings/{topping_id}
       method: DELETE
     response:
       status_code: 204
 
+  - name: Delete the sauce
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/sauce/{sauce_id}
+      method: DELETE
+    response:
+      status_code: 204
 
-  - name: Delete dough with id
+  - name: Delete the dough
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/doughs/{dough_id}
       method: DELETE
     response:
       status_code: 204
-
