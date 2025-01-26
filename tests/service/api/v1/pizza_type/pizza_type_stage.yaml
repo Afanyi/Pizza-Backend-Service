@@ -2,9 +2,6 @@
 
 name: Pizza_type stage
 
-includes:
-  - !include common.yaml
-
 description:
   Reusable test stage for creating pizza types and related resources
 
@@ -12,6 +9,9 @@ variables:
   pizza_name: "Mozzarella"
   pizza_price: 5
   pizza_description: "Italian quality"
+
+  sauce_name: "Marinara1"
+  sauce_description: "Classic tomato sauce with garlic and herbs1."
 
 stages:
 

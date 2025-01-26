@@ -2,6 +2,7 @@ import pytest
 from decimal import Decimal
 from uuid import uuid4
 import app.api.v1.endpoints.topping.crud as topping_crud
+from app.api.v1.endpoints.sauce.schemas import SauceCreateSchema
 
 from app.api.v1.endpoints.topping.schemas import ToppingCreateSchema
 from app.api.v1.endpoints.pizza_type.crud import (
@@ -23,6 +24,8 @@ from app.api.v1.endpoints.dough.crud import (
     get_dough_by_name,
     delete_dough_by_id,
 )
+
+from app.api.v1.endpoints.sauce.crud import create_sauce, get_sauce_by_name, delete_sauce_by_id
 from app.api.v1.endpoints.dough.schemas import DoughCreateSchema
 from app.database.connection import SessionLocal
 
@@ -48,6 +51,12 @@ def cleanup_topping(name: str, db):
         topping_crud.delete_topping_by_id(existing_topping.id, db)
 
 
+def cleanup_sauce(name: str, db):
+    existing_sauce = get_sauce_by_name(name, db)
+    if existing_sauce:
+        delete_sauce_by_id(existing_sauce.id, db)
+
+
 def create_dummy_dough(db):
     initial_data = {
         'name': 'Test Dough',
@@ -56,6 +65,15 @@ def create_dummy_dough(db):
         'stock': 100,
     }
     return create_dough(DoughCreateSchema(**initial_data), db)
+
+
+def create_dummy_sauce(db):
+    initial_data = {
+        'name': 'Test Sauce',
+        'description': 'A test sauce description.',
+    }
+
+    return create_sauce(SauceCreateSchema(**initial_data), db)
 
 
 def create_dummy_topping(db):
@@ -73,6 +91,7 @@ def test_pizza_type_crud_operations(db):
     dummy_dough_name = 'Test Dough'
     cleanup_dough(dummy_dough_name, db)
     dough = create_dummy_dough(db)
+    sauce = create_dummy_sauce(db)
 
     # Step 2: Create a dummy topping
     dummy_topping_name = 'Test Topping'
@@ -84,6 +103,7 @@ def test_pizza_type_crud_operations(db):
         name='Test Pizza',
         price=Decimal('12.99'),
         description='A test pizza',
+        default_sauce_id=sauce.id,
         dough_id=dough.id,
     )
     created_pizza = create_pizza_type(pizza_schema, db)
@@ -147,6 +167,7 @@ def test_pizza_type_crud_operations(db):
     delete_pizza_type_by_id(created_pizza.id, db)
     delete_dough_by_id(dough.id, db)
     topping_crud.delete_topping_by_id(topping.id, db)
+    delete_sauce_by_id(sauce.id, db)
 
     # Verify cleanup
     db.commit()

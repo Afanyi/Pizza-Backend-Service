@@ -2,7 +2,7 @@
 
 name: Sauce stage
 includes:
-  - !include sauce_common.yaml
+  - !include common.yaml
 
 description:
   Reusable test stage for creating sauces

@@ -3,7 +3,7 @@
 test_name: Make sure server implements CRUD functionality for sauce endpoint
 
 includes:
-  - !include sauce_common.yaml
+  - !include common.yaml
 
 stages:
   - name: Verify that status code equals 201 when we create a new sauce and the sauce is returned

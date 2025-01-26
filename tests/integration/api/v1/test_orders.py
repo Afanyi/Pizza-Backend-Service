@@ -13,6 +13,8 @@ from app.api.v1.endpoints.dough.crud import create_dough, delete_dough_by_id
 from app.api.v1.endpoints.dough.schemas import DoughCreateSchema
 from app.api.v1.endpoints.beverage.crud import create_beverage, delete_beverage_by_id
 from app.api.v1.endpoints.beverage.schemas import BeverageCreateSchema
+from app.api.v1.endpoints.sauce.schemas import SauceCreateSchema
+from app.api.v1.endpoints.sauce.crud import create_sauce, delete_sauce_by_id
 from app.api.v1.endpoints.pizza_type.crud import (
     create_pizza_type,
     delete_pizza_type_by_id,
@@ -59,6 +61,16 @@ def db_session():
         raise
     finally:
         db.close()
+
+
+@pytest.fixture(scope='function')
+def dummy_sauce(db_session):
+    initial_data = {
+        'name': 'Test Sauce',
+        'description': 'A test sauce description.',
+    }
+
+    yield create_sauce(SauceCreateSchema(**initial_data), db_session)
 
 
 @pytest.fixture(scope='function')
@@ -121,7 +133,7 @@ def delete_pizza_by_id(pizza_id: UUID, db: Session):
         db.commit()
 
 
-def test_order_lifecycle(db_session: Session, dummy_user, unique_dough, dummy_beverage):
+def test_order_lifecycle(db_session: Session, dummy_user, unique_dough, dummy_beverage, dummy_sauce):
     """
     Integration test that covers create, read, update, and delete operations for an order.
     Ensures that referential integrity is maintained by deleting dependent records first.
@@ -169,6 +181,7 @@ def test_order_lifecycle(db_session: Session, dummy_user, unique_dough, dummy_be
             price=Decimal('12.99'),
             description='A test pizza',
             dough_id=unique_dough.id,
+            default_sauce_id=dummy_sauce.id,
         )
         pizza_type = create_pizza_type(pizza_schema, db_session)
         added_pizza = add_pizza_to_order(fetched_order, pizza_type, db_session)
@@ -226,8 +239,10 @@ def test_order_lifecycle(db_session: Session, dummy_user, unique_dough, dummy_be
         if dummy_user:
             delete_user_by_id(dummy_user.id, db_session)
 
+        delete_sauce_by_id(dummy_sauce.id, db_session)
 
-def test_order_crud_additional(db_session: Session, dummy_user, unique_dough, dummy_beverage):
+
+def test_order_crud_additional(db_session: Session, dummy_user, unique_dough, dummy_beverage, dummy_sauce):
     """
     Additional integration test to cover remaining CRUD operations in crud.py:
     - get_all_orders
@@ -269,6 +284,7 @@ def test_order_crud_additional(db_session: Session, dummy_user, unique_dough, du
             name=f'Test Pizza 1 {uuid.uuid4()}',
             price=Decimal('10.00'),
             description='First test pizza',
+            default_sauce_id=dummy_sauce.id,
             dough_id=unique_dough.id,
         )
         pizza_type_1 = create_pizza_type(pizza_schema_1, db_session)
@@ -395,3 +411,5 @@ def test_order_crud_additional(db_session: Session, dummy_user, unique_dough, du
         if dummy_user:
             delete_user_by_id(dummy_user.id, db_session)
         db_session.commit()
+
+        delete_sauce_by_id(dummy_sauce.id, db_session)
