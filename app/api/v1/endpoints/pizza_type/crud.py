@@ -1,11 +1,13 @@
 import uuid
 import logging
+
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from app.api.v1.endpoints.pizza_type.schemas import (
     PizzaTypeCreateSchema,
     PizzaTypeToppingQuantityCreateSchema,
 )
-from app.database.models import PizzaType, PizzaTypeToppingQuantity
+from app.database.models import PizzaType, PizzaTypeToppingQuantity, Sauce
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -13,6 +15,22 @@ logging.basicConfig(level=logging.INFO)
 
 def create_pizza_type(schema: PizzaTypeCreateSchema, db: Session):
     logging.info(f'Creating a new pizza type with data: {schema.dict()}')
+
+    # Assign a default sauce if none is provided
+    if not schema.default_sauce_id:
+        logging.info('No default sauce ID provided. Assigning the first available sauce.')
+        default_sauce = db.query(Sauce).first()
+        if not default_sauce:
+            logging.warning('No sauces available in the database.')
+            raise HTTPException(status_code=400, detail='No sauces available to assign as default')
+        schema.default_sauce_id = default_sauce.id
+
+    # Validate sauce (now assigned if it was missing)
+    sauce = db.query(Sauce).filter(Sauce.id == schema.default_sauce_id).first()
+    if not sauce:
+        logging.warning(f'Sauce with ID {schema.default_sauce_id} not found.')
+        raise HTTPException(status_code=404, detail='Sauce not found')
+
     try:
         # Create entity from schema
         entity = PizzaType(**schema.dict())

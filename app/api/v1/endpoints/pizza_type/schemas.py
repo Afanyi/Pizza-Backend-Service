@@ -1,5 +1,5 @@
 import uuid
-
+from typing import Optional
 from pydantic import BaseModel
 
 from app.api.v1.endpoints.topping.schemas import ToppingBaseSchema
@@ -9,6 +9,7 @@ class PizzaTypeBaseSchema(BaseModel):
     name: str
     price: float
     description: str
+    default_sauce_id: Optional[uuid.UUID] = None
 
     class Config:
         orm_mode = True

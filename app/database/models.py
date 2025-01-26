@@ -25,6 +25,17 @@ class OrderStatus(str, enum.Enum):
     COMPLETED = 'COMPLETED'
 
 
+class Sauce(Base):
+    __tablename__ = 'sauce'
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(nullable=False, unique=True)
+    description: Mapped[str] = mapped_column(nullable=False, default='')
+
+    def __repr__(self):
+        return "Sauce(id='%s', name='%s', description='%s')" % (self.id, self.name, self.description)
+
+
 # models
 class PizzaType(Base):
     __tablename__ = 'pizza_type'
@@ -39,6 +50,8 @@ class PizzaType(Base):
     dough: Mapped['Dough'] = relationship()
     toppings: Mapped[List['PizzaTypeToppingQuantity']] = relationship(cascade=ALL_DELETE_ORPHAN,
                                                                       back_populates='pizza_type')
+    default_sauce_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('sauce.id'), nullable=True)
+    default_sauce: Mapped['Sauce'] = relationship()
     type: Mapped[str] = mapped_column(nullable=True)
 
     __mapper_args__ = {
@@ -47,8 +60,8 @@ class PizzaType(Base):
     }
 
     def __repr__(self):
-        return "PizzaType(id='%s', name='%s', price='%s', description='%s', type='%s')" \
-            % (self.id, self.name, self.price, self.description, self.type)
+        return "PizzaType(id='%s', name='%s', price='%s', description='%s', type='%s', default_sauce='%s')" % (
+            self.id, self.name, self.price, self.description, self.type, self.default_sauce)
 
 
 class PizzaTypeToppingQuantity(Base):

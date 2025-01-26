@@ -14,6 +14,10 @@ stages:
   - type: ref
     id: create_user
 
+  # Create Sauce
+  - type: ref
+    id: create_sauce
+
   #Create Order
   - type: ref
     id: create_order
@@ -154,3 +158,7 @@ stages:
       method: DELETE
     response:
       status_code: 204
+
+  # Delete Sauce
+  - type: ref
+    id: delete_sauce

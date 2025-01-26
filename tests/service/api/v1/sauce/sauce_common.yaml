@@ -1,0 +1,8 @@
+---
+
+name: Common
+description: Common test information for sauce functionality
+
+variables:
+  sauce_name: "Marinara1"
+  sauce_description: "Classic tomato sauce with garlic and herbs1."

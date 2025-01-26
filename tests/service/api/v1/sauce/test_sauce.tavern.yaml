@@ -1,0 +1,89 @@
+---
+
+test_name: Make sure server implements CRUD functionality for sauce endpoint
+
+includes:
+  - !include sauce_common.yaml
+
+stages:
+  - name: Verify that status code equals 201 when we create a new sauce and the sauce is returned
+    max_retries: 10
+    delay_after: 2
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/sauce
+      json: &sauce
+        name: "{sauce_name:s}"
+        description: "{sauce_description}"
+      method: POST
+    response:
+      status_code: 201
+      json:
+        <<: *sauce
+        id: !anything
+      save:
+        json:
+          sauce_id: id
+
+  - name: Verify that status code equals 303 when we create a new sauce with a name that already exists
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/sauce
+      json:
+        name: "{sauce_name:s}"
+        description: "Duplicate test sauce"
+      method: POST
+    response:
+      status_code: 303
+      headers:
+        location: "http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/sauce/{sauce_id}"
+
+  - name: Check for status 404 when we try to get a sauce with a wrong id
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/sauce/00000000-0000-0000-0000-000000000000
+      method: GET
+    response:
+      status_code: 404
+
+  - name: Get sauce with id
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/sauce/{sauce_id}
+      method: GET
+    response:
+      status_code: 200
+      json: &retrieved_sauce
+        <<: *sauce
+        id: "{sauce_id}"
+
+  - name: Get all sauces
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/sauce
+      method: GET
+    response:
+      status_code: 200
+      json: !anylist
+        id: "{sauce_id}"
+        name: "{sauce_name:s}"
+        description: "{sauce_description}"
+
+  - name: Update sauce
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/sauce/{sauce_id}
+      method: PUT
+      json:
+        name: "{sauce_name:s}"
+        description: "Updated sauce description"
+    response:
+      status_code: 200
+
+  - name: Check for status 404 when trying to delete a non-existent sauce
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/sauce/00000000-0000-0000-0000-000000000000
+      method: DELETE
+    response:
+      status_code: 404
+
+  - name: Delete sauce with id
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/sauce/{sauce_id}
+      method: DELETE
+    response:
+      status_code: 204

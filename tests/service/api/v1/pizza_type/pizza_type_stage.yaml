@@ -2,8 +2,11 @@
 
 name: Pizza_type stage
 
+includes:
+  - !include common.yaml
+
 description:
-  Reusable test stage for creating doughs
+  Reusable test stage for creating pizza types and related resources
 
 variables:
   pizza_name: "Mozzarella"
@@ -12,8 +15,26 @@ variables:
 
 stages:
 
+  - id: create_sauce
+    name: Create the test sauce
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/sauce
+      json: &sauce
+        name: "{sauce_name:s}"
+        description: "{sauce_description}"
+      method: POST
+    response:
+      status_code: 201
+      strict: false
+      json:
+        <<: *sauce
+        id: !anything
+      save:
+        json:
+          sauce_id: id
+
   - id: create_pizza_type
-    name: create the test pizza_type
+    name: Create the test pizza_type
     request:
       url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/pizza-types
       json:
@@ -21,6 +42,7 @@ stages:
         price: !float "{pizza_price:f}"
         description: "{pizza_description}"
         dough_id: "{dough_id}"
+        default_sauce_id: "{sauce_id}"
       method: POST
     response:
       status_code: 201
@@ -28,6 +50,7 @@ stages:
         name: "{pizza_name:s}"
         price: !float "{pizza_price:f}"
         description: "{pizza_description}"
+        default_sauce_id: "{sauce_id}"
         id: !anything
       save:
         json:
@@ -40,3 +63,12 @@ stages:
       method: DELETE
     response:
       status_code: 204
+
+  - id: delete_sauce
+    name: delete sauce
+    request:
+      url: http://{tavern.env_vars.API_SERVER}:{tavern.env_vars.API_PORT}/v1/sauce/{sauce_id}
+      method: DELETE
+    response:
+      status_code: 204
+

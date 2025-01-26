@@ -14,6 +14,10 @@ stages:
   - type: ref
     id: create_user
 
+  # Create Sauce
+  - type: ref
+    id: create_sauce
+
   #Create Order
   - type: ref
     id: create_order
@@ -132,6 +136,10 @@ stages:
   #Delete pizza_type
   - type: ref
     id: delete_pizza_type
+
+  # Delete Sauce
+  - type: ref
+    id: delete_sauce
 
   #Delete Dough
   - type: ref
