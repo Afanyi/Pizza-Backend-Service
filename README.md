@@ -1,40 +1,175 @@
-# **1337 Pizza** - Pizza Delivery for Your *Nerdy* Needs
+# 1337 Pizza Backend Service
 
-**1337 Pizza** is a pizza delivery company, that has specialized on the needs of nerds.
-The unique selling propositions of **1337 Pizza** compared with their competitors are: 
-- 24/7 pizza delivery; ***you need it; we deliver it***
-- Any exotic pizza composition is possible; ***anything goes***
-- Pizza can be ordered hot or cold; ***we don't judge***
-- Orders can be placed through an API; ***talk API to us, baby***
+Backend service for the 1337 Pizza delivery platform. The application exposes a versioned REST API built with FastAPI and stores its data in PostgreSQL via SQLAlchemy and Alembic migrations.
 
+## Overview
 
-## Project Overview
-This repository contains all development artifacts related to the backend service of the **1337 Pizza**-delivery. It exposes an API endpoints that can be used by front-end applications. For this repository, however, front-end applications are out of scope. They may be developed by other teams.
+The service currently provides API endpoints for:
 
+- users
+- orders
+- beverages
+- pizza types
+- doughs
+- toppings
+- sauces
 
-## Folder Structure of this Repository
-The following is a brief description of the folder structure of this project:
-- **app** - service's source code
-- **doc** - all documentation of the project - [entrypoint](doc/README.md)
-- **infra** - all infrastructure artifacts
-- **test** - all tests 
-Docker
-Docker is an open-source platform designed to automate the deployment, scaling, and management of applications using containerization. By packaging applications in isolated containers, Docker enables consistent execution across different environments, making development, testing, and deployment more efficient. Containers are lightweight, portable, and provide all the necessary components, including code, libraries, and dependencies, to run applications consistently. Docker simplifies the creation, deployment, and management of distributed applications and helps streamline workflows for developers and DevOps teams.
+The API is mounted under `/v1`, and interactive documentation is available through FastAPI's Swagger UI.
 
-Kubernetes
-Kubernetes, also known as K8s, is an open-source platform for automating the deployment, scaling, and management of containerized applications. Developed by Google, Kubernetes allows for the orchestration of complex, distributed systems and provides tools for managing containerized workloads across a cluster of machines. It offers features like automatic scaling, load balancing, and self-healing to ensure applications run reliably. Kubernetes is widely used to manage microservices architectures and supports DevOps practices through its ability to handle CI/CD and infrastructure automation.
+## Tech Stack
 
-FastAPI
-FastAPI is a modern, fast (high-performance) web framework for building APIs with Python, based on standard Python type hints. It is designed to provide an easy-to-use and intuitive framework for creating APIs quickly, with built-in support for asynchronous requests, validation, and JSON serialization. FastAPI is built on top of Starlette and Pydantic, allowing it to achieve high performance similar to Node.js or Go and making it an ideal choice for handling large amounts of data in real time. The framework also includes interactive API documentation with Swagger UI and ReDoc.
+- Python 3.10
+- FastAPI
+- SQLAlchemy
+- Alembic
+- PostgreSQL
+- Poetry
+- Pytest
+- Tavern
+- Docker
 
-SQLAlchemy
-SQLAlchemy is a Python SQL toolkit and Object-Relational Mapping (ORM) library that provides a full suite of well-known enterprise-level persistence patterns. It offers a high-level ORM, allowing developers to map Python classes to database tables and manage database interactions through object-oriented code. SQLAlchemy abstracts away database-specific SQL, enabling developers to write code that works with various databases (such as SQLite, PostgreSQL, MySQL, etc.) without needing to alter the codebase. SQLAlchemy is well-suited for complex applications requiring flexibility and efficiency in database management.
+## Repository Structure
 
-FastAPI with SQLAlchemy
-Using SQLAlchemy with FastAPI provides developers with a powerful toolkit for creating APIs that interact with databases. By integrating SQLAlchemy with FastAPI, you can create RESTful endpoints with robust database connections, manage schemas, and leverage SQLAlchemy's ORM capabilities. This combination enables the development of highly performant applications that can interact with databases using asynchronous requests. Together, FastAPI and SQLAlchemy are popular for projects that need quick response times, efficient database handling, and scalable API endpoints.
+```text
+.
+├── app/                    Application source code
+├── doc/                    Project documentation
+├── infra/                  Docker and deployment artifacts
+├── tests/                  Unit, integration, and service tests
+├── docker-compose.yml      Local development services
+├── pyproject.toml          Python dependencies and tool configuration
+└── alembic.ini             Database migration configuration
+```
 
-Alembic
-Alembic is a lightweight database migration tool for use with SQLAlchemy that allows developers to manage schema changes to their database in a version-controlled way. It provides tools to generate and apply migrations (schema changes), keeping track of database versions as an application evolves. Alembic is essential for managing changes to the database structure without losing data, enabling developers to handle database schema changes seamlessly and consistently across development, testing, and production environments.
+## Prerequisites
 
-Swagger UI
-Swagger UI is an open-source tool that provides a user-friendly interface for exploring and interacting with APIs. It auto-generates documentation from the API’s specification, enabling developers to test endpoints and view responses directly in the browser. Swagger UI is commonly used with OpenAPI specifications and provides real-time, interactive API documentation that helps both developers and stakeholders understand the API's capabilities and constraints. It’s widely used in conjunction with frameworks like FastAPI to enhance API documentation and testing capabilities.
+- Python 3.10
+- Poetry 1.8.5 or compatible
+- Docker
+- Docker Compose v2
+- PostgreSQL 15 if you run the app without Docker
+
+## Environment Variables
+
+The application reads its database configuration from the following variables:
+
+- `DATABASE_HOST`
+- `DATABASE_PORT`
+- `DATABASE_USERNAME`
+- `DATABASE_PASSWORD`
+- `DATABASE_NAME`
+
+The default Docker Compose setup uses:
+
+```env
+DATABASE_HOST=db-dev
+DATABASE_PORT=5432
+DATABASE_USERNAME=postgres
+DATABASE_PASSWORD=mysecretpassword
+DATABASE_NAME=postgres
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=mysecretpassword
+POSTGRES_DB=postgres
+```
+
+## Getting Started
+
+### Option 1: Recommended local setup
+
+The repository ships with documentation for running the project through PyCharm with a Docker Compose interpreter:
+
+- [Local development setup](doc/local_dev_setup/README.md)
+
+This is the most complete setup path documented in the repository.
+
+### Option 2: Run from the command line
+
+1. Install dependencies:
+
+```bash
+poetry install
+```
+
+2. Make sure PostgreSQL is running and the required database environment variables are set.
+
+3. Apply database migrations:
+
+```bash
+PYTHONPATH=. poetry run alembic upgrade head
+```
+
+4. Start the API:
+
+```bash
+poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+5. Open the API documentation:
+
+```text
+http://localhost:8000/docs
+```
+
+## Database Migrations
+
+Apply the latest schema changes:
+
+```bash
+PYTHONPATH=. poetry run alembic upgrade head
+```
+
+Create a new migration after changing the SQLAlchemy models:
+
+```bash
+PYTHONPATH=. poetry run alembic revision --autogenerate -m "my_new_feature"
+```
+
+Migration files are stored in `app/database/migrations/versions/`.
+
+## Testing
+
+Run linting:
+
+```bash
+poetry run flakeheaven lint app/ tests/
+```
+
+Run unit tests:
+
+```bash
+PYTHONPATH=. poetry run pytest -x tests/unit/
+```
+
+Run integration tests:
+
+```bash
+PYTHONPATH=. poetry run pytest -x tests/integration/
+```
+
+Run service tests:
+
+```bash
+export API_SERVER=localhost
+export API_PORT=8000
+PYTHONPATH=. poetry run pytest -x tests/service/
+```
+
+Service tests expect the API to be running and reachable through `API_SERVER` and `API_PORT`.
+
+## API Notes
+
+- Base path: `/v1`
+- Swagger UI: `/docs`
+- ReDoc: `/redoc`
+
+Current route groups are defined in [app/api/v1/router.py](app/api/v1/router.py).
+
+## Additional Documentation
+
+- [Documentation index](doc/README.md)
+- [Local development setup](doc/local_dev_setup/README.md)
+- [Testing](doc/testing/README.md)
+- [Tooling](doc/tooling/README.md)
+- [CI/CD strategy](doc/cicd_strategy/README.md)
+- [Coding conventions](doc/coding_conventions/README.md)
+- [Versioning and commit messages](doc/versioning_commit_messages/README.md)
